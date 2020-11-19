@@ -20,6 +20,7 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>AWS Chime</h1>
+        <button onClick={joinMeeting}>Create Meeting</button>
         <button onClick={joinMeeting}>Join Meeting</button>
       </main>
     </div>

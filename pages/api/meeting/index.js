@@ -19,6 +19,7 @@ const createMeeting = async (meetingTitle, region) => {
     throw new Error("Need parameters: meetingTitle");
   }
 
+  console.log('Found', meetingTable[meetingTitle]);
   // Look up the meeting by its meetingTitle. If it does not exist, create the meeting.
   if (!meetingTable[meetingTitle]) {
     meetingTable[meetingTitle] = await chime
@@ -33,30 +34,25 @@ const createMeeting = async (meetingTitle, region) => {
   }
 
   // Fetch the meeting info
-  const meeting = meetingTable[meetingTitle];
-  console.log(meetingTable);
-  return meeting;
+  return meetingTable[meetingTitle];
 };
 
 const createAttendee = async (meetingTitle, name) => {
   // Fetch the meeting info
   const meeting = meetingTable[meetingTitle];
-  console.log({ meetingTable, meeting });
 
   if (!meeting || !name) {
     throw new Error("Create a meeting first.");
   }
 
   // Create new attendee for the meeting
-  const attendee = await chime
+  return await chime
     .createAttendee({
       // The meeting ID of the created meeting to add the attendee to
       MeetingId: meeting.Meeting.MeetingId,
       ExternalUserId: `${uuidv4().substring(0, 8)}#${name}`.substring(0, 64),
     })
     .promise();
-
-  return attendee;
 };
 
 const endMeeting = async (meetingTitle) => {
@@ -72,7 +68,7 @@ const endMeeting = async (meetingTitle) => {
 
 export default async (req, res) => {
   const {
-    query: { meetingTitle, name, region = "ap-south-1", mode },
+    query: { meetingTitle, name = 'Test Attendee', region = "ap-south-1", mode },
   } = req;
 
   if (!mode) {
@@ -81,16 +77,24 @@ export default async (req, res) => {
 
   if (mode === "createMeeting") {
     // http://localhost:3000/api/meeting?mode=createMeeting&meetingTitle=meet1
-    const meeting = await createMeeting(meetingTitle, region);
+    const { Meeting } = await createMeeting(meetingTitle, region);
+    const { Attendee } = await createAttendee(meetingTitle, name);
     res.statusCode = 201;
-    res.json({ meeting: meeting });
+    res.json({ Meeting, Attendee });
   } else if (mode === "createAttendee") {
     // http://localhost:3000/api/meeting?mode=createAttendee&meetingTitle=meet1&name=john
-    const attendee = await createAttendee(meetingTitle, name);
+    console.log('table', meetingTable, 'title', meetingTitle);
+    console.log('extracted', meetingTable[meetingTitle]);
+    const { Meeting } = await createMeeting(meetingTitle, region);
+    const { Attendee } = await createAttendee(meetingTitle, 'Wow');
+    console.log(Meeting, Attendee);
     res.statusCode = 201;
-    res.json({ attendee: attendee });
+    res.json({ Meeting, Attendee });
   } else if (mode === "end") {
     // http://localhost:3000/api/meeting?mode=end
+    console.log('=======================================\n\n\n\n\n\n');
+    console.log('table', meetingTable, 'title', meetingTitle);
+    console.log('extracted', meetingTable[meetingTitle]);
     const endResponse = await endMeeting(meetingTitle);
     res.statusCode = 201;
     res.json(endResponse);

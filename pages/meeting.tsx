@@ -1,17 +1,15 @@
+import {useState} from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import useSwr from "swr";
 
 import styles from "../styles/Home.module.css";
 
-const fetcher = (url) => fetch(url).then((res) => res.json());
-
 export default function Home() {
-  const joinMeeting = () => {
-    const { data, error } = useSwr(`/api/meeting/join`, fetcher);
-    console.log(data);
-  };
-
+    const router = useRouter();
+    const [meetId, setMeetId] = useState('');
+    const join = async (event) => {
+        await router.push({pathname: '/attendee', query : { mode: event.target.dataset.mode, meetId, name : 'Test'}})
+    }
   return (
     <div className={styles.container}>
       <Head>
@@ -20,8 +18,9 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>AWS Chime</h1>
-        <button onClick={joinMeeting}>Create Meeting</button>
-        <button onClick={joinMeeting}>Join Meeting</button>
+          <input id="meetId" type="text" placeholder="Enter Meet Id" onChange={event => setMeetId(event.target.value)} value={meetId}/>
+        <button data-mode="createMeeting" onClick={join}>Create Meeting</button>
+        <button data-mode="createAttendee" onClick={join}>Join Meeting</button>
       </main>
     </div>
   );

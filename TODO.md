@@ -1,11 +1,10 @@
-Yash
+Steps:
 
-- Setup Server
-- Expose API
-  - Create meeting
-  - Create attendee & Join meeting
+Server
 
-Saagar
+1. Create Meeting and Attendee objects using aws-sdk
 
-- Setup Client (JS SDK)
-- Join meeting with Id
+Client
+
+1. Init a MeetingSession using the above Meeting and Attendee objects
+2. Implement the AudioVideoFacade interface to control real-time media.

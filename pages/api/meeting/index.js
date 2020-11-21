@@ -19,7 +19,7 @@ const createMeeting = async (meetingTitle, region) => {
     throw new Error("Need parameters: meetingTitle");
   }
 
-  console.log('Found', meetingTable[meetingTitle]);
+  console.log("Found", meetingTable[meetingTitle]);
   // Look up the meeting by its meetingTitle. If it does not exist, create the meeting.
   if (!meetingTable[meetingTitle]) {
     meetingTable[meetingTitle] = await chime
@@ -68,7 +68,12 @@ const endMeeting = async (meetingTitle) => {
 
 export default async (req, res) => {
   const {
-    query: { meetingTitle, name = 'Test Attendee', region = "ap-south-1", mode },
+    query: {
+      meetingTitle,
+      name = "Test Attendee",
+      region = "ap-south-1",
+      mode,
+    },
   } = req;
 
   if (!mode) {
@@ -83,18 +88,18 @@ export default async (req, res) => {
     res.json({ Meeting, Attendee });
   } else if (mode === "createAttendee") {
     // http://localhost:3000/api/meeting?mode=createAttendee&meetingTitle=meet1&name=john
-    console.log('table', meetingTable, 'title', meetingTitle);
-    console.log('extracted', meetingTable[meetingTitle]);
+    console.log("table", meetingTable, "title", meetingTitle);
+    console.log("extracted", meetingTable[meetingTitle]);
     const { Meeting } = await createMeeting(meetingTitle, region);
-    const { Attendee } = await createAttendee(meetingTitle, 'Wow');
+    const { Attendee } = await createAttendee(meetingTitle, "Wow");
     console.log(Meeting, Attendee);
     res.statusCode = 201;
     res.json({ Meeting, Attendee });
   } else if (mode === "end") {
     // http://localhost:3000/api/meeting?mode=end
-    console.log('=======================================\n\n\n\n\n\n');
-    console.log('table', meetingTable, 'title', meetingTitle);
-    console.log('extracted', meetingTable[meetingTitle]);
+    console.log("=======================================\n\n\n\n\n\n");
+    console.log("table", meetingTable, "title", meetingTitle);
+    console.log("extracted", meetingTable[meetingTitle]);
     const endResponse = await endMeeting(meetingTitle);
     res.statusCode = 201;
     res.json(endResponse);

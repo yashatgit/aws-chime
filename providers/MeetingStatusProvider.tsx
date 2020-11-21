@@ -3,18 +3,13 @@
 
 import {
   MeetingSessionStatus,
-  MeetingSessionStatusCode
-} from 'amazon-chime-sdk-js';
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from 'react';
-import {useRouter} from "next/router";
+  MeetingSessionStatusCode,
+} from "amazon-chime-sdk-js";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 
-import getChimeContext from '../context/getChimeContext';
-import getMeetingStatusContext from '../context/getMeetingStatusContext';
+import getChimeContext from "../context/getChimeContext";
+import getMeetingStatusContext from "../context/getMeetingStatusContext";
 
 export default function MeetingStatusProvider(props) {
   const MeetingStatusContext = getMeetingStatusContext();
@@ -22,37 +17,33 @@ export default function MeetingStatusProvider(props) {
   const { children } = props;
   const chime = useContext(getChimeContext());
   const [meetingStatus, setMeetingStatus] = useState<{
-    meetingStatus: 0 | 1 | 2;
+    meetingStatus: 0 | 1 | 2; // loading | started | failed
     errorMessage?: string;
   }>({
-    meetingStatus: 0
+    meetingStatus: 0,
   });
   const query = props.query;
   const audioElement = useRef(null);
 
   useEffect(() => {
-    const start = async () => {
+    const startMeeting = async () => {
       try {
-        await chime?.createMeetingSession(
-            query.mode,
-            query.meetId,
-            query.name,
-        );
+        await chime?.createMeetingSession(query.mode, query.meetId, query.name);
 
         setMeetingStatus({
-          meetingStatus: 1
+          meetingStatus: 1,
         });
 
-        chime?.audioVideo?.addObserver({
+        chime?.audioVideoFacade?.addObserver({
           audioVideoDidStop: (sessionStatus: MeetingSessionStatus): void => {
             if (
               sessionStatus.statusCode() ===
               MeetingSessionStatusCode.AudioCallEnded
             ) {
-              router.push('/')
+              router.push("/");
               chime?.leaveRoom(true);
             }
-          }
+          },
         });
 
         await chime?.joinRoom(audioElement.current);
@@ -61,17 +52,17 @@ export default function MeetingStatusProvider(props) {
         console.error(error);
         setMeetingStatus({
           meetingStatus: 2,
-          errorMessage: error.message
+          errorMessage: error.message,
         });
       }
     };
-    start();
+    startMeeting();
   }, []);
 
   return (
     <MeetingStatusContext.Provider value={meetingStatus}>
       {/* eslint-disable-next-line */}
-      <audio ref={audioElement} style={{ display: 'none' }} />
+      <audio ref={audioElement} style={{ display: "none" }} />
       {children}
     </MeetingStatusContext.Provider>
   );

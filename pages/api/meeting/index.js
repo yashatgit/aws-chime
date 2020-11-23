@@ -61,7 +61,9 @@ const endMeeting = async (meetingTitle) => {
   }
   return await chime
     .deleteMeeting({
-      MeetingId: meetingTable[meetingTitle].Meeting.MeetingId,
+      MeetingId: meetingTable[meetingTitle]?.Meeting.MeetingId,
+    }, () => {
+      delete meetingTable[meetingTitle]
     })
     .promise();
 };
@@ -70,7 +72,7 @@ export default async (req, res) => {
   const {
     query: {
       meetingTitle,
-      name = "Test Attendee",
+      name = "Guest",
       region = "ap-south-1",
       mode,
     },
@@ -80,28 +82,20 @@ export default async (req, res) => {
     throw new Error("Need parameters: mode");
   }
 
-  if (mode === "createMeeting") {
-    // http://localhost:3000/api/meeting?mode=createMeeting&meetingTitle=meet1
+  if (mode === "join") {
+    // http://localhost:3000/api/meeting?mode=join&meetingTitle=meet1
     const { Meeting } = await createMeeting(meetingTitle, region);
     const { Attendee } = await createAttendee(meetingTitle, name);
     res.statusCode = 201;
     res.json({ Meeting, Attendee });
-  } else if (mode === "createAttendee") {
-    // http://localhost:3000/api/meeting?mode=createAttendee&meetingTitle=meet1&name=john
-    console.log("table", meetingTable, "title", meetingTitle);
-    console.log("extracted", meetingTable[meetingTitle]);
-    const { Meeting } = await createMeeting(meetingTitle, region);
-    const { Attendee } = await createAttendee(meetingTitle, "Wow");
-    console.log(Meeting, Attendee);
-    res.statusCode = 201;
-    res.json({ Meeting, Attendee });
   } else if (mode === "end") {
     // http://localhost:3000/api/meeting?mode=end
-    console.log("=======================================\n\n\n\n\n\n");
-    console.log("table", meetingTable, "title", meetingTitle);
-    console.log("extracted", meetingTable[meetingTitle]);
-    const endResponse = await endMeeting(meetingTitle);
+    await endMeeting(meetingTitle)
     res.statusCode = 201;
-    res.json(endResponse);
+    res.json({message : "Meeting Ended"});
+  } else {
+    console.log('unknown request');
+    res.statusCode = 500;
+    res.end();
   }
 };
